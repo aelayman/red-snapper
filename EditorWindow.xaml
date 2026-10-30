@@ -42,23 +42,23 @@
         <Border DockPanel.Dock="Left" Background="White" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,0,1,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="6,6">
                 <StackPanel>
-                    <RadioButton Content="➤" ToolTip="Select" Tag="Select" GroupName="tools" IsChecked="True" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconSelect}" ToolTip="Select" Tag="Select" GroupName="tools" IsChecked="True" Click="Tool_Click" Style="{StaticResource RailTool}" />
                     <Rectangle Height="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
-                    <RadioButton Content="↗" ToolTip="Arrow" Tag="Arrow" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="╱" ToolTip="Line" Tag="Line" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="▭" ToolTip="Rectangle" Tag="Rectangle" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="◯" ToolTip="Ellipse" Tag="Ellipse" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="✎" ToolTip="Pen" Tag="Pen" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="▮" ToolTip="Highlight" Tag="Highlight" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconArrow}" ToolTip="Arrow" Tag="Arrow" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconLine}" ToolTip="Line" Tag="Line" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconRectangle}" ToolTip="Rectangle" Tag="Rectangle" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconEllipse}" ToolTip="Ellipse" Tag="Ellipse" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconPen}" ToolTip="Pen" Tag="Pen" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconHighlight}" ToolTip="Highlight" Tag="Highlight" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
                     <Rectangle Height="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
-                    <RadioButton Content="T" ToolTip="Text" Tag="Text" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="①" ToolTip="Step" Tag="Step" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconText}" ToolTip="Text" Tag="Text" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconStep}" ToolTip="Step" Tag="Step" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
                     <Rectangle Height="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
-                    <RadioButton Content="▦" ToolTip="Pixelate" Tag="Pixelate" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="◌" ToolTip="Blur" Tag="Blur" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
-                    <RadioButton Content="■" ToolTip="Redact" Tag="Solid" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconPixelate}" ToolTip="Pixelate" Tag="Pixelate" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconBlur}" ToolTip="Blur" Tag="Blur" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconRedact}" ToolTip="Redact" Tag="Solid" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
                     <Rectangle Height="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
-                    <RadioButton Content="⌗" ToolTip="Crop" Tag="Crop" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
+                    <RadioButton Content="{StaticResource IconCrop}" ToolTip="Crop" Tag="Crop" GroupName="tools" Click="Tool_Click" Style="{StaticResource RailTool}" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
