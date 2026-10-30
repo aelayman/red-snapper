@@ -20,6 +20,10 @@ public sealed class AnnotationData
     public string? Text { get; set; }
     public double FontSize { get; set; }
     public int Number { get; set; }
+    public string? Head { get; set; }
+    public bool Dashed { get; set; }
+    public bool Filled { get; set; }
+    public List<double>? Points { get; set; }
 }
 
 internal static class AnnotationStore
@@ -37,7 +41,16 @@ internal static class AnnotationStore
         {
             case ShapeAnnotation s:
                 d.Type = "shape"; d.Kind = s.Kind.ToString();
+                (d.Head, d.Dashed, d.Filled) = (s.Head.ToString(), s.Dashed, s.Filled);
                 (d.X1, d.Y1, d.X2, d.Y2) = (s.P1.X, s.P1.Y, s.P2.X, s.P2.Y);
+                break;
+            case PenAnnotation pen:
+                d.Type = "pen";
+                d.Points = pen.Points.SelectMany(p => new[] { p.X, p.Y }).ToList();
+                break;
+            case CropAnnotation c:
+                d.Type = "crop";
+                (d.X1, d.Y1, d.X2, d.Y2) = (c.Area.Left, c.Area.Top, c.Area.Right, c.Area.Bottom);
                 break;
             case RedactAnnotation r:
                 d.Type = "redact"; d.Kind = r.Mode.ToString();
@@ -66,7 +79,15 @@ internal static class AnnotationStore
         Annotation? a = d.Type switch
         {
             "shape" when Enum.TryParse<ShapeKind>(d.Kind, out var kind) =>
-                new ShapeAnnotation { Kind = kind, P1 = new Point(d.X1, d.Y1), P2 = new Point(d.X2, d.Y2) },
+                new ShapeAnnotation
+                {
+                    Kind = kind, P1 = new Point(d.X1, d.Y1), P2 = new Point(d.X2, d.Y2),
+                    Head = Enum.TryParse<ArrowHead>(d.Head, out var head) ? head : ArrowHead.Arrow,
+                    Dashed = d.Dashed, Filled = d.Filled,
+                },
+            "pen" when d.Points != null =>
+                new PenAnnotation { Points = Enumerable.Range(0, d.Points.Count / 2).Select(i => new Point(d.Points[i * 2], d.Points[i * 2 + 1])).ToList() },
+            "crop" => new CropAnnotation { Area = new Rect(new Point(d.X1, d.Y1), new Point(d.X2, d.Y2)) },
             "redact" when Enum.TryParse<RedactMode>(d.Kind, out var mode) =>
                 new RedactAnnotation { Mode = mode, P1 = new Point(d.X1, d.Y1), P2 = new Point(d.X2, d.Y2) },
             "text" => new TextAnnotation { Text = d.Text ?? "", FontSize = d.FontSize > 0 ? d.FontSize : 24, Position = new Point(d.X1, d.Y1) },

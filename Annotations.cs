@@ -1,12 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace RedSnapper;
 
-public enum Tool { Select, Arrow, Line, Rectangle, Ellipse, Highlight, Text, Step, Pixelate, Solid }
+public enum Tool { Select, Arrow, Line, Rectangle, Ellipse, Highlight, Pen, Text, Step, Pixelate, Blur, Solid, Crop }
 
 public abstract class Annotation
 {
@@ -37,11 +39,16 @@ public abstract class Annotation
 
 public enum ShapeKind { Line, Arrow, Rectangle, Ellipse, Highlight }
 
+public enum ArrowHead { Arrow, Double, Dot, Bar, None }
+
 public sealed class ShapeAnnotation : Annotation
 {
     public ShapeKind Kind { get; set; }
     public Point P1 { get; set; }
     public Point P2 { get; set; }
+    public ArrowHead Head { get; set; } = ArrowHead.Arrow;
+    public bool Dashed { get; set; }
+    public bool Filled { get; set; }
 
     private Rect Box => new(P1, P2);
 
@@ -78,6 +85,8 @@ public sealed class ShapeAnnotation : Annotation
             EndLineCap = PenLineCap.Round,
             LineJoin = PenLineJoin.Round,
         };
+        if (Dashed && Kind != ShapeKind.Highlight) pen.DashStyle = new DashStyle(new[] { 3.0, 2.0 }, 0);
+        var fill = Filled ? MakeBrush(0x99) : null;
 
         switch (Kind)
         {
@@ -85,11 +94,11 @@ public sealed class ShapeAnnotation : Annotation
                 dc.DrawLine(pen, P1, P2);
                 break;
             case ShapeKind.Rectangle:
-                dc.DrawRectangle(null, pen, Box);
+                dc.DrawRectangle(fill, pen, Box);
                 break;
             case ShapeKind.Ellipse:
                 var b = Box;
-                dc.DrawEllipse(null, pen, new Point(b.X + b.Width / 2, b.Y + b.Height / 2), b.Width / 2, b.Height / 2);
+                dc.DrawEllipse(fill, pen, new Point(b.X + b.Width / 2, b.Y + b.Height / 2), b.Width / 2, b.Height / 2);
                 break;
             case ShapeKind.Highlight:
                 dc.DrawRectangle(MakeBrush(0x66), null, Box);
@@ -107,25 +116,49 @@ public sealed class ShapeAnnotation : Annotation
         if (len < 1) return;
 
         v.Normalize();
-        var normal = new Vector(-v.Y, v.X);
         double headLen = 10 + 3 * Thickness;
-        double headHalfWidth = headLen * 0.5;
-        var baseCenter = P2 - v * headLen * 0.8;
+        var start = P1;
+        var end = P2;
+        if (Head is ArrowHead.Arrow or ArrowHead.Double) end = P2 - v * headLen * 0.8;
+        if (Head == ArrowHead.Double) start = P1 + v * headLen * 0.8;
 
-        dc.DrawLine(pen, P1, baseCenter);
+        var solidPen = pen.Clone();
+        solidPen.DashStyle = DashStyles.Solid;
+        dc.DrawLine(pen, start, end);
+        if (Head == ArrowHead.None) return;
 
-        var geo = new StreamGeometry();
-        using (var ctx = geo.Open())
-        {
-            ctx.BeginFigure(P2, true, true);
-            ctx.LineTo(baseCenter + normal * headHalfWidth, true, false);
-            ctx.LineTo(baseCenter - normal * headHalfWidth, true, false);
-        }
-        geo.Freeze();
-        dc.DrawGeometry(brush, null, geo);
+        DrawHead(dc, brush, solidPen, P2, v, headLen);
+        if (Head == ArrowHead.Double) DrawHead(dc, brush, solidPen, P1, -v, headLen);
     }
 
-    private static double DistanceToSegment(Point p, Point a, Point b)
+    private void DrawHead(DrawingContext dc, Brush brush, Pen pen, Point tip, Vector dir, double headLen)
+    {
+        var normal = new Vector(-dir.Y, dir.X);
+        switch (Head)
+        {
+            case ArrowHead.Dot:
+                double r = headLen * 0.3;
+                dc.DrawEllipse(brush, null, tip - dir * r, r, r);
+                break;
+            case ArrowHead.Bar:
+                dc.DrawLine(pen, tip + normal * headLen * 0.5, tip - normal * headLen * 0.5);
+                break;
+            default:
+                var baseCenter = tip - dir * headLen * 0.8;
+                var geo = new StreamGeometry();
+                using (var ctx = geo.Open())
+                {
+                    ctx.BeginFigure(tip, true, true);
+                    ctx.LineTo(baseCenter + normal * headLen * 0.5, true, false);
+                    ctx.LineTo(baseCenter - normal * headLen * 0.5, true, false);
+                }
+                geo.Freeze();
+                dc.DrawGeometry(brush, null, geo);
+                break;
+        }
+    }
+
+    internal static double DistanceToSegment(Point p, Point a, Point b)
     {
         var ab = b - a;
         double lenSq = ab.LengthSquared;
@@ -133,6 +166,70 @@ public sealed class ShapeAnnotation : Annotation
         double t = Math.Clamp(Vector.Multiply(p - a, ab) / lenSq, 0, 1);
         return (p - (a + ab * t)).Length;
     }
+}
+
+public sealed class PenAnnotation : Annotation
+{
+    public List<Point> Points { get; set; } = new();
+
+    public override Rect Bounds
+    {
+        get
+        {
+            if (Points.Count == 0) return Rect.Empty;
+            double x1 = Points.Min(p => p.X), y1 = Points.Min(p => p.Y);
+            double x2 = Points.Max(p => p.X), y2 = Points.Max(p => p.Y);
+            var b = new Rect(new Point(x1, y1), new Point(x2, y2));
+            b.Inflate(Thickness, Thickness);
+            return b;
+        }
+    }
+
+    // Points are replaced rather than mutated because undo snapshots share the list.
+    public override void Move(Vector delta) => Points = Points.Select(p => p + delta).ToList();
+
+    public override bool HitTest(Point p)
+    {
+        for (int i = 0; i < Points.Count; i++)
+        {
+            var a = Points[i];
+            var b = i + 1 < Points.Count ? Points[i + 1] : a;
+            if (ShapeAnnotation.DistanceToSegment(p, a, b) <= Thickness + 6) return true;
+        }
+        return false;
+    }
+
+    public override void Draw(DrawingContext dc, BitmapSource baseImage)
+    {
+        if (Points.Count == 0) return;
+        var pen = new Pen(MakeBrush(), Thickness)
+        {
+            StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round,
+        };
+        if (Points.Count == 1)
+        {
+            dc.DrawEllipse(MakeBrush(), null, Points[0], Thickness / 2, Thickness / 2);
+            return;
+        }
+        var geo = new StreamGeometry();
+        using (var ctx = geo.Open())
+        {
+            ctx.BeginFigure(Points[0], false, false);
+            ctx.PolyLineTo(Points.Skip(1).ToList(), true, true);
+        }
+        geo.Freeze();
+        dc.DrawGeometry(null, pen, geo);
+    }
+}
+
+// The visible area of the image. Annotations keep original-image coordinates, so cropping is non-destructive.
+public sealed class CropAnnotation : Annotation
+{
+    public Rect Area { get; set; }
+    public override Rect Bounds => Rect.Empty;
+    public override void Move(Vector delta) { }
+    public override void Draw(DrawingContext dc, BitmapSource baseImage) { }
+    public override bool HitTest(Point p) => false;
 }
 
 public sealed class TextAnnotation : Annotation
@@ -182,7 +279,7 @@ public sealed class StepAnnotation : Annotation
     }
 }
 
-public enum RedactMode { Pixelate, Solid }
+public enum RedactMode { Pixelate, Solid, Blur }
 
 public sealed class RedactAnnotation : Annotation
 {
@@ -216,7 +313,7 @@ public sealed class RedactAnnotation : Annotation
 
         if (cachedPixels == null || !ReferenceEquals(cachedSource, baseImage) || !cachedRect.Equals(rect))
         {
-            cachedPixels = Pixelate(baseImage, rect);
+            cachedPixels = Mode == RedactMode.Blur ? Blur(baseImage, rect) : Pixelate(baseImage, rect);
             cachedSource = baseImage;
             cachedRect = rect;
         }
@@ -231,6 +328,48 @@ public sealed class RedactAnnotation : Annotation
         int right = (int)Math.Min(maxW, Math.Ceiling(r.Right));
         int bottom = (int)Math.Min(maxH, Math.Ceiling(r.Bottom));
         return new Int32Rect(x, y, Math.Max(0, right - x), Math.Max(0, bottom - y));
+    }
+
+    private static BitmapSource Blur(BitmapSource src, Int32Rect rect)
+    {
+        var converted = new FormatConvertedBitmap(new CroppedBitmap(src, rect), PixelFormats.Bgra32, null, 0);
+        int w = rect.Width, h = rect.Height, stride = w * 4;
+        var px = new byte[stride * h];
+        converted.CopyPixels(px, stride, 0);
+
+        int radius = Math.Max(4, Math.Min(16, Math.Min(w, h) / 3));
+        var tmp = new byte[px.Length];
+        for (int pass = 0; pass < 3; pass++)
+        {
+            BoxBlur(px, tmp, w, h, radius, horizontal: true);
+            BoxBlur(tmp, px, w, h, radius, horizontal: false);
+        }
+        for (int i = 3; i < px.Length; i += 4) px[i] = 255;
+
+        var result = BitmapSource.Create(w, h, 96, 96, PixelFormats.Bgra32, null, px, stride);
+        result.Freeze();
+        return result;
+    }
+
+    private static void BoxBlur(byte[] src, byte[] dst, int w, int h, int r, bool horizontal)
+    {
+        int lines = horizontal ? h : w, len = horizontal ? w : h;
+        int step = horizontal ? 4 : w * 4, lineStep = horizontal ? w * 4 : 4;
+        for (int l = 0; l < lines; l++)
+        {
+            int baseIdx = l * lineStep;
+            for (int c = 0; c < 3; c++)
+            {
+                int sum = 0;
+                for (int k = -r; k <= r; k++) sum += src[baseIdx + Math.Clamp(k, 0, len - 1) * step + c];
+                for (int i = 0; i < len; i++)
+                {
+                    dst[baseIdx + i * step + c] = (byte)(sum / (2 * r + 1));
+                    sum += src[baseIdx + Math.Min(len - 1, i + r + 1) * step + c];
+                    sum -= src[baseIdx + Math.Max(0, i - r) * step + c];
+                }
+            }
+        }
     }
 
     private static BitmapSource Pixelate(BitmapSource src, Int32Rect rect)

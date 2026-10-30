@@ -30,15 +30,30 @@
                     <RadioButton Content="▭ Rectangle" Tag="Rectangle" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="◯ Ellipse" Tag="Ellipse" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="▮ Highlight" Tag="Highlight" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
+                    <RadioButton Content="✎ Pen" Tag="Pen" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="T Text" Tag="Text" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="① Step" Tag="Step" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="▦ Pixelate" Tag="Pixelate" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
+                    <RadioButton Content="◌ Blur" Tag="Blur" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
                     <RadioButton Content="■ Redact" Tag="Solid" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
+                    <RadioButton Content="⌗ Crop" Tag="Crop" GroupName="tools" Click="Tool_Click" Style="{StaticResource ToolToggle}" />
+                    <Button x:Name="ResetCropButton" Content="Reset crop" Click="ResetCrop_Click" Style="{StaticResource ActionButton}" Visibility="Collapsed" />
                     <Rectangle Width="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
                     <StackPanel x:Name="ColorPanel" Orientation="Horizontal" VerticalAlignment="Center" />
                     <Rectangle Width="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
                     <TextBlock Text="Width" Foreground="{StaticResource InkMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <Slider x:Name="WidthSlider" Minimum="1" Maximum="12" Value="4" Width="100" ValueChanged="Width_Changed" VerticalAlignment="Center" />
+                    <Rectangle Width="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
+                    <TextBlock Text="Arrow" Foreground="{StaticResource InkMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="HeadBox" Width="90" SelectedIndex="0" VerticalAlignment="Center" SelectionChanged="Style_Changed">
+                        <ComboBoxItem Content="Arrow" Tag="Arrow" />
+                        <ComboBoxItem Content="Double" Tag="Double" />
+                        <ComboBoxItem Content="Dot" Tag="Dot" />
+                        <ComboBoxItem Content="Bar" Tag="Bar" />
+                        <ComboBoxItem Content="None" Tag="None" />
+                    </ComboBox>
+                    <CheckBox x:Name="DashedBox" Content="Dashed" Margin="10,0,0,0" VerticalAlignment="Center" Click="Style_Changed" />
+                    <CheckBox x:Name="FilledBox" Content="Filled" Margin="10,0,0,0" VerticalAlignment="Center" Click="Style_Changed" />
                 </WrapPanel>
             </StackPanel>
         </Border>

@@ -63,11 +63,11 @@ public partial class EditorWindow : Window
 
     private void FitZoom()
     {
-        var img = View.Image!;
+        var img = View.CropArea;
         double dpi = VisualTreeHelper.GetDpi(this).DpiScaleX;
         double fit = Math.Min(
-            Math.Max(100, Scroller.ActualWidth - 40) / img.PixelWidth,
-            Math.Max(100, Scroller.ActualHeight - 40) / img.PixelHeight);
+            Math.Max(100, Scroller.ActualWidth - 40) / img.Width,
+            Math.Max(100, Scroller.ActualHeight - 40) / img.Height);
         SetZoom(Math.Min(1 / dpi, fit));
     }
 
@@ -88,8 +88,10 @@ public partial class EditorWindow : Window
     private void UpdateStatus()
     {
         if (StatusText == null) return;
-        var img = View.Image!;
-        StatusText.Text = $"{img.PixelWidth} × {img.PixelHeight}px  |  {View.Annotations.Count} annotations  |  zoom {zoom:P0}  |  Ctrl+wheel zooms";
+        var area = View.CropArea;
+        ResetCropButton.Visibility = View.IsCropped ? Visibility.Visible : Visibility.Collapsed;
+        int count = View.Annotations.Count(a => a is not CropAnnotation);
+        StatusText.Text = $"{(int)Math.Round(area.Width)} × {(int)Math.Round(area.Height)}px  |  {count} annotations  |  zoom {zoom:P0}  |  Ctrl+wheel zooms";
     }
 
     private List<Annotation> Snapshot() => View.Annotations.Select(a => a.Clone()).ToList();
@@ -139,6 +141,18 @@ public partial class EditorWindow : Window
         View.Selected = null;
         View.InvalidateVisual();
     }
+
+    private void Style_Changed(object sender, RoutedEventArgs e)
+    {
+        if (View == null || FilledBox == null || DashedBox == null) return;
+        if (HeadBox.SelectedItem is ComboBoxItem item)
+            View.Head = Enum.Parse<ArrowHead>((string)item.Tag);
+        View.Dashed = DashedBox.IsChecked == true;
+        View.Filled = FilledBox.IsChecked == true;
+        View.ApplyStyleToSelected();
+    }
+
+    private void ResetCrop_Click(object sender, RoutedEventArgs e) => View.ResetCrop();
 
     private void Swatch_Click(object sender, RoutedEventArgs e)
     {
