@@ -1,4 +1,8 @@
-# Red Snapper
+<p align="center">
+  <img src="assets/logo.png" alt="Red Snapper logo" width="128" />
+</p>
+
+<h1 align="center">Red Snapper</h1>
 
 A Windows (WPF / .NET 8) screen capture and annotation tool, based on [Snappilot](https://github.com/shipiit/snappilot), the open-source
 macOS screen capture and annotation tool (MIT licensed). This is a ground-up rewrite, since the original
