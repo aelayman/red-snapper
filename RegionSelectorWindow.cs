@@ -23,12 +23,17 @@ public sealed class RegionSelectorWindow : Window
     private readonly TextBlock label = new() { Foreground = Brushes.White, FontSize = 12 };
 
     private Point? start;
+    private readonly System.Collections.Generic.List<Rect> windows;
+    private Rect? hoverWindow;
 
     public Int32Rect? Result { get; private set; }
 
-    public RegionSelectorWindow(BitmapSource shot, int x, int y, int w, int h)
+    public RegionSelectorWindow(BitmapSource shot, int x, int y, int w, int h, System.Collections.Generic.List<Rect>? windowRects = null)
     {
         vx = x; vy = y; vw = w; vh = h;
+        // Convert screen coordinates to canvas (screenshot) coordinates.
+        windows = (windowRects ?? new()).ConvertAll(r => Rect.Intersect(new Rect(r.X - x, r.Y - y, r.Width, r.Height), new Rect(0, 0, w, h)));
+        windows.RemoveAll(r => r.IsEmpty);
 
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
@@ -116,7 +121,13 @@ public sealed class RegionSelectorWindow : Window
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        if (start is not Point s) return;
+        if (start is not Point s)
+        {
+            ShowWindowHover(e.GetPosition(canvas));
+            return;
+        }
+        if (hoverWindow != null && (e.GetPosition(canvas) - s).Length < 4) return;
+        hoverWindow = null;
 
         var rect = Clamp(new Rect(s, e.GetPosition(canvas)));
         UpdateDim(rect);
@@ -141,12 +152,41 @@ public sealed class RegionSelectorWindow : Window
 
         var rect = Clamp(new Rect(s, e.GetPosition(canvas)));
         start = null;
+        // A click without dragging captures the window under the cursor.
+        if (rect.Width < 4 && rect.Height < 4 && hoverWindow is Rect win)
+            rect = win;
         if (rect.Width >= 3 && rect.Height >= 3)
         {
             Result = new Int32Rect((int)Math.Round(rect.X), (int)Math.Round(rect.Y),
                 (int)Math.Round(rect.Width), (int)Math.Round(rect.Height));
             Close();
         }
+    }
+
+    private void ShowWindowHover(Point p)
+    {
+        Rect? found = null;
+        foreach (var r in windows)
+            if (r.Contains(p)) { found = r; break; }
+        hoverWindow = found;
+
+        if (found is not Rect rect)
+        {
+            border.Visibility = Visibility.Collapsed;
+            labelBox.Visibility = Visibility.Collapsed;
+            UpdateDim(Rect.Empty);
+            return;
+        }
+        UpdateDim(rect);
+        border.Visibility = Visibility.Visible;
+        Canvas.SetLeft(border, rect.X);
+        Canvas.SetTop(border, rect.Y);
+        border.Width = rect.Width;
+        border.Height = rect.Height;
+        label.Text = $"Click to capture window  ·  {(int)rect.Width} × {(int)rect.Height}  ·  or drag a region";
+        labelBox.Visibility = Visibility.Visible;
+        Canvas.SetLeft(labelBox, rect.X);
+        Canvas.SetTop(labelBox, Math.Max(0, rect.Y - 26));
     }
 
     private Rect Clamp(Rect r)

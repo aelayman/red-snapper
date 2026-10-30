@@ -239,10 +239,11 @@ public partial class App : Application
         {
             // Let the tray menu finish closing before taking the screenshot.
             await Task.Delay(200);
+            var windowRects = ScreenCapture.VisibleWindows();
             var (x, y, w, h) = ScreenCapture.VirtualScreen();
             var shot = ScreenCapture.Capture(x, y, w, h);
 
-            var selector = new RegionSelectorWindow(shot, x, y, w, h);
+            var selector = new RegionSelectorWindow(shot, x, y, w, h, windowRects);
             selector.ShowDialog();
             if (selector.Result is Int32Rect region)
             {
