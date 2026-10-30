@@ -145,6 +145,34 @@ public partial class EditorWindow : Window
     private void Redo_Click(object sender, RoutedEventArgs e) => Redo();
     private void Delete_Click(object sender, RoutedEventArgs e) => View.DeleteSelected();
     private void Copy_Click(object sender, RoutedEventArgs e) => CopyToClipboard();
+
+    private async void Ocr_Click(object sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "Recognizing text…";
+        try
+        {
+            var text = await OcrService.RecognizeAsync(View.Image!);
+            if (text == null)
+            {
+                MessageBox.Show(this, "No text recognition language is installed. Add a language in Windows Settings > Time & language.", "Red Snapper");
+                UpdateStatus();
+            }
+            else if (string.IsNullOrWhiteSpace(text))
+            {
+                StatusText.Text = "No text found";
+            }
+            else
+            {
+                Clipboard.SetText(text);
+                StatusText.Text = $"Copied {text.Length} characters of text to clipboard";
+            }
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.ExternalException)
+        {
+            MessageBox.Show(this, ex.Message, "Red Snapper");
+            UpdateStatus();
+        }
+    }
     private void Save_Click(object sender, RoutedEventArgs e) => Save();
     private void SaveAs_Click(object sender, RoutedEventArgs e) => SaveAs();
 
