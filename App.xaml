@@ -9,7 +9,7 @@
         <SolidColorBrush x:Key="ChromeBorder" Color="#FFE2E2E8" />
         <SolidColorBrush x:Key="Ink" Color="#FF2A2A30" />
         <SolidColorBrush x:Key="InkMuted" Color="#FF7A7A85" />
-        <SolidColorBrush x:Key="CanvasBackdrop" Color="#FF26262B" />
+        <SolidColorBrush x:Key="CanvasBackdrop" Color="#FFECEDF1" />
 
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Foreground" Value="{StaticResource Ink}" />
@@ -65,6 +65,36 @@
                         <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="10,6" Margin="2,0"
                                 TextElement.Foreground="{TemplateBinding Foreground}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#14000000" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Accent}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RailTool" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="58" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="10" Padding="0,3,0,3"
+                                TextElement.Foreground="{TemplateBinding Foreground}">
+                            <StackPanel>
+                                <TextBlock Text="{TemplateBinding Content}" FontSize="16" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding ToolTip, RelativeSource={RelativeSource TemplatedParent}}"
+                                           FontSize="9.5" HorizontalAlignment="Center" Margin="0,0,0,0" />
+                            </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">

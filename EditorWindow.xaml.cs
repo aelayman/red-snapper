@@ -57,6 +57,7 @@ public partial class EditorWindow : Window
 
         Title = path == null ? "Red Snapper Editor" : $"Red Snapper Editor - {System.IO.Path.GetFileName(path)}";
         Loaded += (_, _) => FitZoom();
+        UpdateOptions();
         PreviewKeyDown += Window_PreviewKeyDown;
         UpdateStatus();
     }
@@ -91,7 +92,8 @@ public partial class EditorWindow : Window
         var area = View.CropArea;
         ResetCropButton.Visibility = View.IsCropped ? Visibility.Visible : Visibility.Collapsed;
         int count = View.Annotations.Count(a => a is not CropAnnotation);
-        StatusText.Text = $"{(int)Math.Round(area.Width)} × {(int)Math.Round(area.Height)}px  |  {count} annotations  |  zoom {zoom:P0}  |  Ctrl+wheel zooms";
+        StatusText.Text = $"{(int)Math.Round(area.Width)} × {(int)Math.Round(area.Height)}px  |  {count} annotations  |  Ctrl+wheel zooms";
+        ZoomText.Text = zoom.ToString("P0");
     }
 
     private List<Annotation> Snapshot() => View.Annotations.Select(a => a.Clone()).ToList();
@@ -137,10 +139,30 @@ public partial class EditorWindow : Window
 
     private void Tool_Click(object sender, RoutedEventArgs e)
     {
-        View.Tool = Enum.Parse<Tool>((string)((FrameworkElement)sender).Tag);
+        var el = (FrameworkElement)sender;
+        View.Tool = Enum.Parse<Tool>((string)el.Tag);
         View.Selected = null;
         View.InvalidateVisual();
+        ToolLabel.Text = el.ToolTip as string ?? "";
+        UpdateOptions();
     }
+
+    private void UpdateOptions()
+    {
+        var t = View.Tool;
+        bool select = t == Tool.Select;
+        bool noColor = t is Tool.Pixelate or Tool.Blur or Tool.Solid or Tool.Crop;
+        ColorGroup.Visibility = noColor ? Visibility.Collapsed : Visibility.Visible;
+        WidthGroup.Visibility = noColor || t == Tool.Highlight ? Visibility.Collapsed : Visibility.Visible;
+        HeadGroup.Visibility = select || t == Tool.Arrow ? Visibility.Visible : Visibility.Collapsed;
+        DashedBox.Visibility = select || t is Tool.Arrow or Tool.Line or Tool.Rectangle or Tool.Ellipse ? Visibility.Visible : Visibility.Collapsed;
+        FilledBox.Visibility = select || t is Tool.Rectangle or Tool.Ellipse ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ZoomIn_Click(object sender, RoutedEventArgs e) => SetZoom(zoom * 1.25);
+    private void ZoomOut_Click(object sender, RoutedEventArgs e) => SetZoom(zoom / 1.25);
+    private void ZoomFit_Click(object sender, RoutedEventArgs e) => FitZoom();
+    private void Zoom100_Click(object sender, RoutedEventArgs e) => SetZoom(1 / VisualTreeHelper.GetDpi(this).DpiScaleX);
 
     private void Style_Changed(object sender, RoutedEventArgs e)
     {
