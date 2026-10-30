@@ -12,6 +12,8 @@ public partial class App : Application
 {
     private const int HotkeyRegion = 1;
     private const int HotkeyFullScreen = 2;
+    private const int HotkeyPrintScreen = 3;
+    private const uint VkSnapshot = 0x2C;
     private const uint VkS = 0x53;
     private const uint VkF = 0x46;
 
@@ -43,7 +45,7 @@ public partial class App : Application
         if (!openedFile)
         {
             tray!.ShowBalloonTip(3000, "Red Snapper is running",
-                "Ctrl+Shift+S captures a region, Ctrl+Shift+F the full screen.", System.Windows.Forms.ToolTipIcon.Info);
+                "Press Print Screen (or Ctrl+Shift+S) to capture a region, Ctrl+Shift+F for the full screen.", System.Windows.Forms.ToolTipIcon.Info);
         }
     }
 
@@ -53,6 +55,7 @@ public partial class App : Application
         {
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyRegion);
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen);
+            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen);
             hotkeyWindow.Dispose();
         }
         if (tray != null)
@@ -67,7 +70,7 @@ public partial class App : Application
     private void BuildTray()
     {
         var menu = new System.Windows.Forms.ContextMenuStrip();
-        menu.Items.Add("Capture Region (Ctrl+Shift+S)", null, (_, _) => CaptureRegion());
+        menu.Items.Add("Capture Region (Print Screen)", null, (_, _) => CaptureRegion());
         menu.Items.Add("Capture Full Screen (Ctrl+Shift+F)", null, (_, _) => CaptureFullScreen());
         menu.Items.Add("Open Image…", null, (_, _) => PickAndOpenImage());
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
@@ -100,6 +103,13 @@ public partial class App : Application
         uint mods = NativeMethods.MOD_CONTROL | NativeMethods.MOD_SHIFT | NativeMethods.MOD_NOREPEAT;
         bool ok = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyRegion, mods, VkS);
         ok &= NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen, mods, VkF);
+        bool printScreenOk = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen, NativeMethods.MOD_NOREPEAT, VkSnapshot);
+        if (!printScreenOk)
+        {
+            tray?.ShowBalloonTip(5000, "Print Screen unavailable",
+                "Another app is using the Print Screen key. Use Ctrl+Shift+S instead.",
+                System.Windows.Forms.ToolTipIcon.Warning);
+        }
         if (!ok)
         {
             tray?.ShowBalloonTip(5000, "Hotkey unavailable",
@@ -113,7 +123,7 @@ public partial class App : Application
         if (msg == NativeMethods.WM_HOTKEY)
         {
             int id = wParam.ToInt32();
-            if (id == HotkeyRegion) CaptureRegion();
+            if (id == HotkeyRegion || id == HotkeyPrintScreen) CaptureRegion();
             else if (id == HotkeyFullScreen) CaptureFullScreen();
             handled = true;
         }
