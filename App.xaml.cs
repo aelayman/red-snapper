@@ -26,6 +26,14 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        DispatcherUnhandledException += (_, args) =>
+        {
+            LogError(args.Exception);
+            tray?.ShowBalloonTip(5000, "Red Snapper hit an error", args.Exception.Message, System.Windows.Forms.ToolTipIcon.Error);
+            args.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => LogError(args.ExceptionObject as Exception);
+
         singleInstance = new Mutex(true, "RedSnapper.SingleInstance", out bool created);
         if (!created)
         {
@@ -65,6 +73,17 @@ public partial class App : Application
         }
         singleInstance?.Dispose();
         base.OnExit(e);
+    }
+
+    private static void LogError(Exception? ex)
+    {
+        try
+        {
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Red Snapper");
+            Directory.CreateDirectory(dir);
+            File.AppendAllText(Path.Combine(dir, "error.log"), $"{DateTime.Now:O}\n{ex}\n\n");
+        }
+        catch (IOException) { }
     }
 
     private void BuildTray()
