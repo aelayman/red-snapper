@@ -210,8 +210,8 @@ public partial class App : Application
             {
                 var crop = new CroppedBitmap(shot, region);
                 crop.Freeze();
-                HistoryService.Add(crop);
-                OpenEditor(crop, null);
+                var entry = HistoryService.Add(crop);
+                OpenEditor(crop, null, entry);
             }
         }
         finally
@@ -229,8 +229,8 @@ public partial class App : Application
             await Task.Delay(200);
             var (x, y, w, h) = ScreenCapture.VirtualScreen();
             var full = ScreenCapture.Capture(x, y, w, h);
-            HistoryService.Add(full);
-            OpenEditor(full, null);
+            var entry = HistoryService.Add(full);
+            OpenEditor(full, null, entry);
         }
         finally
         {
@@ -265,9 +265,41 @@ public partial class App : Application
         }
     }
 
-    private static void OpenEditor(BitmapSource image, string? file)
+    private static readonly System.Collections.Generic.Dictionary<Guid, EditorWindow> EntryEditors = new();
+
+    public static void OpenHistoryEntry(HistoryEntry entry)
     {
-        var editor = new EditorWindow(image, file);
+        if (EntryEditors.TryGetValue(entry.Id, out var existing))
+        {
+            if (existing.WindowState == WindowState.Minimized) existing.WindowState = WindowState.Normal;
+            existing.Activate();
+            return;
+        }
+
+        try
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.UriSource = new Uri(HistoryService.PathOf(entry));
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            image.Freeze();
+            OpenEditor(image, null, entry);
+        }
+        catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or FileFormatException)
+        {
+            MessageBox.Show($"Could not open this capture:\n{ex.Message}", "Red Snapper");
+        }
+    }
+
+    private static void OpenEditor(BitmapSource image, string? file, HistoryEntry? entry = null)
+    {
+        var editor = new EditorWindow(image, file, entry);
+        if (entry != null)
+        {
+            EntryEditors[entry.Id] = editor;
+            editor.Closed += (_, _) => EntryEditors.Remove(entry.Id);
+        }
         editor.Show();
         editor.Activate();
     }

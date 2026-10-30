@@ -23,7 +23,7 @@ public partial class HistoryWindow : Window
 
             var thumb = new BitmapImage();
             thumb.BeginInit();
-            thumb.UriSource = new Uri(HistoryService.PathOf(entry));
+            thumb.UriSource = new Uri(HistoryService.DisplayPathOf(entry));
             thumb.DecodePixelWidth = 440;
             thumb.CacheOption = BitmapCacheOption.OnLoad;
             thumb.EndInit();
@@ -109,7 +109,7 @@ public partial class HistoryWindow : Window
 
     private void OpenSelected()
     {
-        if (Selected is { } entry) App.OpenImageFile(HistoryService.PathOf(entry));
+        if (Selected is { } entry) App.OpenHistoryEntry(entry);
     }
 
     private void CopyText_Click(object sender, RoutedEventArgs e)

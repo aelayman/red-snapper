@@ -23,17 +23,22 @@ public partial class EditorWindow : Window
     private readonly Stack<List<Annotation>> undo = new();
     private readonly Stack<List<Annotation>> redo = new();
     private string? path;
+    private readonly HistoryEntry? entry;
+    private bool dirty;
     private double zoom = 1;
 
-    public EditorWindow(BitmapSource image, string? path = null)
+    public EditorWindow(BitmapSource image, string? path = null, HistoryEntry? entry = null)
     {
         InitializeComponent();
         this.path = path;
+        this.entry = entry;
 
         View.Image = image;
+        if (entry != null) View.ReplaceAnnotations(HistoryService.LoadAnnotations(entry));
         View.Changing += PushUndo;
         View.Changed += UpdateStatus;
         View.PromptText = Prompt;
+        Closing += (_, _) => SaveToHistory();
 
         foreach (var (name, color) in Palette)
         {
@@ -91,8 +96,16 @@ public partial class EditorWindow : Window
 
     private void PushUndo()
     {
+        dirty = true;
         undo.Push(Snapshot());
         redo.Clear();
+    }
+
+    // Annotations are kept with the capture in History; the original image is never modified.
+    private void SaveToHistory()
+    {
+        if (entry == null || !dirty) return;
+        if (HistoryService.SaveEdit(entry, View.Annotations, View.RenderToBitmap())) dirty = false;
     }
 
     private void Undo()
@@ -186,6 +199,7 @@ public partial class EditorWindow : Window
         try
         {
             Clipboard.SetImage(View.RenderToBitmap());
+            SaveToHistory();
             StatusText.Text = "Copied to clipboard";
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or InvalidOperationException)
@@ -233,6 +247,7 @@ public partial class EditorWindow : Window
             encoder.Save(stream);
             Title = $"Red Snapper Editor - {System.IO.Path.GetFileName(target)}";
             StatusText.Text = $"Saved to {target}";
+            SaveToHistory();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

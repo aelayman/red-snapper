@@ -13,6 +13,8 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 - Region selector over a frozen screenshot (Esc / right-click cancels)
 - Every capture is saved to a history library (`%LOCALAPPDATA%\Red Snapper\History`) and its text is read with
   Windows OCR, so you can search inside past screenshots from the History window
+- Annotations are saved with each capture and stay editable: reopen it from History to move, change or delete
+  them. The original image is never modified; Copy/Save export a flattened copy
 - "Start with Windows" toggle in the tray menu
 - Annotation editor: select/move, arrow, line, rectangle, ellipse, highlight, text, numbered steps,
   pixelate, solid redact. Color and width controls. Undo/redo (Ctrl+Z / Ctrl+Y), Delete.
