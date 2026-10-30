@@ -37,18 +37,18 @@ public partial class EditorWindow : Window
 
         foreach (var (name, color) in Palette)
         {
-            ColorBox.Items.Add(new ComboBoxItem
+            var swatch = new RadioButton
             {
                 Tag = color,
                 ToolTip = name,
-                Content = new System.Windows.Shapes.Rectangle
-                {
-                    Width = 44, Height = 12, Fill = new SolidColorBrush(color),
-                    Stroke = Brushes.Gray, StrokeThickness = 1,
-                },
-            });
+                GroupName = "colors",
+                Background = new SolidColorBrush(color),
+                Style = (Style)FindResource("Swatch"),
+            };
+            swatch.Click += Swatch_Click;
+            ColorPanel.Children.Add(swatch);
         }
-        ColorBox.SelectedIndex = 0;
+        ((RadioButton)ColorPanel.Children[0]).IsChecked = true;
 
         Title = path == null ? "Red Snapper Editor" : $"Red Snapper Editor - {System.IO.Path.GetFileName(path)}";
         Loaded += (_, _) => FitZoom();
@@ -127,10 +127,9 @@ public partial class EditorWindow : Window
         View.InvalidateVisual();
     }
 
-    private void Color_Changed(object sender, SelectionChangedEventArgs e)
+    private void Swatch_Click(object sender, RoutedEventArgs e)
     {
-        if (View == null || ColorBox.SelectedItem is not ComboBoxItem item) return;
-        var color = (Color)item.Tag;
+        var color = (Color)((FrameworkElement)sender).Tag;
         View.StrokeColor = color;
         View.RecolorSelected(color);
     }

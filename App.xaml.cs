@@ -75,12 +75,20 @@ public partial class App : Application
 
         tray = new System.Windows.Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = LoadTrayIcon(),
             Text = "Red Snapper",
             ContextMenuStrip = menu,
             Visible = true,
         };
         tray.DoubleClick += (_, _) => CaptureRegion();
+    }
+
+    private static System.Drawing.Icon LoadTrayIcon()
+    {
+        var info = GetResourceStream(new Uri("app.ico", UriKind.Relative));
+        if (info == null) return System.Drawing.SystemIcons.Application;
+        using var stream = info.Stream;
+        return new System.Drawing.Icon(stream);
     }
 
     private void RegisterHotkeys()

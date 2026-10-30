@@ -11,6 +11,11 @@
     <RootNamespace>RedSnapper</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+  </ItemGroup>
 
 </Project>
