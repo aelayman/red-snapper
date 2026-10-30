@@ -16,6 +16,7 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 - Annotations are saved with each capture and stay editable: reopen it from History to move, change or delete
   them. The original image is never modified; Copy/Save export a flattened copy
 - "Start with Windows" toggle in the tray menu
+- **Settings** (tray menu): change or disable any hotkey and choose the default save folder. Defaults are the keys above.
 - Annotation editor: select/move, arrow, line, rectangle, ellipse, highlight, text, numbered steps,
   pixelate, solid redact. Color and width controls. Undo/redo (Ctrl+Z / Ctrl+Y), Delete.
 - Copy to clipboard (Ctrl+C), Save (Ctrl+S, to `Pictures\Red Snapper`), Save As (PNG/JPEG/BMP)

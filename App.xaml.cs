@@ -14,10 +14,8 @@ public partial class App : Application
     private const int HotkeyFullScreen = 2;
     private const int HotkeyPrintScreen = 3;
     private const int HotkeyHistory = 4;
-    private const uint VkH = 0x48;
-    private const uint VkSnapshot = 0x2C;
-    private const uint VkS = 0x53;
-    private const uint VkF = 0x46;
+
+    private System.Windows.Forms.ToolStripMenuItem? regionItem, fullItem, historyItem;
 
     private Mutex? singleInstance;
     private System.Windows.Forms.NotifyIcon? tray;
@@ -54,8 +52,7 @@ public partial class App : Application
 
         if (!openedFile)
         {
-            tray!.ShowBalloonTip(3000, "Red Snapper is running",
-                "Press Print Screen (or Ctrl+Shift+S) to capture a region, Ctrl+Shift+F for the full screen.", System.Windows.Forms.ToolTipIcon.Info);
+            tray!.ShowBalloonTip(3000, "Red Snapper is running", StartupHint(), System.Windows.Forms.ToolTipIcon.Info);
         }
     }
 
@@ -63,10 +60,7 @@ public partial class App : Application
     {
         if (hotkeyWindow != null)
         {
-            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyRegion);
-            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen);
-            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen);
-            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyHistory);
+            UnregisterHotkeys();
             hotkeyWindow.Dispose();
         }
         if (tray != null)
@@ -123,10 +117,15 @@ public partial class App : Application
     private void BuildTray()
     {
         var menu = new System.Windows.Forms.ContextMenuStrip();
-        menu.Items.Add("Capture Region (Print Screen)", null, (_, _) => CaptureRegion());
-        menu.Items.Add("Capture Full Screen (Ctrl+Shift+F)", null, (_, _) => CaptureFullScreen());
-        menu.Items.Add("History… (Ctrl+Shift+H)", null, (_, _) => HistoryWindow.ShowWindow());
+        regionItem = new System.Windows.Forms.ToolStripMenuItem("Capture Region", null, (_, _) => CaptureRegion());
+        fullItem = new System.Windows.Forms.ToolStripMenuItem("Capture Full Screen", null, (_, _) => CaptureFullScreen());
+        historyItem = new System.Windows.Forms.ToolStripMenuItem("History…", null, (_, _) => HistoryWindow.ShowWindow());
+        menu.Items.Add(regionItem);
+        menu.Items.Add(fullItem);
+        menu.Items.Add(historyItem);
+        UpdateTrayText();
         menu.Items.Add("Open Image…", null, (_, _) => PickAndOpenImage());
+        menu.Items.Add("Settings…", null, (_, _) => SettingsWindow.ShowWindow());
         var startup = new System.Windows.Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
         startup.Click += (_, _) =>
         {
@@ -155,27 +154,66 @@ public partial class App : Application
         return new System.Drawing.Icon(stream);
     }
 
+    private static string WithKey(string label, string hotkey) =>
+        string.IsNullOrWhiteSpace(hotkey) ? label : $"{label} ({HotkeyText.Display(hotkey)})";
+
+    private void UpdateTrayText()
+    {
+        var s = AppSettings.Current;
+        if (regionItem != null) regionItem.Text = WithKey("Capture Region", !string.IsNullOrWhiteSpace(s.RegionHotkey) ? s.RegionHotkey : s.AltRegionHotkey);
+        if (fullItem != null) fullItem.Text = WithKey("Capture Full Screen", s.FullScreenHotkey);
+        if (historyItem != null) historyItem.Text = WithKey("History…", s.HistoryHotkey);
+    }
+
+    private static string StartupHint()
+    {
+        var s = AppSettings.Current;
+        var region = !string.IsNullOrWhiteSpace(s.RegionHotkey) ? s.RegionHotkey : s.AltRegionHotkey;
+        return string.IsNullOrWhiteSpace(region)
+            ? "Right-click the tray icon to capture."
+            : $"Press {HotkeyText.Display(region)} to capture a region.";
+    }
+
+    private void UnregisterHotkeys()
+    {
+        if (hotkeyWindow == null) return;
+        foreach (int id in new[] { HotkeyRegion, HotkeyFullScreen, HotkeyPrintScreen, HotkeyHistory })
+            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, id);
+    }
+
+    internal void ApplySettings()
+    {
+        RegisterHotkeys();
+        UpdateTrayText();
+    }
+
     private void RegisterHotkeys()
     {
-        var parameters = new HwndSourceParameters("RedSnapperHotkeys") { ParentWindow = NativeMethods.HWND_MESSAGE };
-        hotkeyWindow = new HwndSource(parameters);
-        hotkeyWindow.AddHook(WndProc);
-
-        uint mods = NativeMethods.MOD_CONTROL | NativeMethods.MOD_SHIFT | NativeMethods.MOD_NOREPEAT;
-        bool ok = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyRegion, mods, VkS);
-        ok &= NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen, mods, VkF);
-        ok &= NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyHistory, mods, VkH);
-        bool printScreenOk = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen, NativeMethods.MOD_NOREPEAT, VkSnapshot);
-        if (!printScreenOk)
+        if (hotkeyWindow == null)
         {
-            tray?.ShowBalloonTip(5000, "Print Screen unavailable",
-                "Another app is using the Print Screen key. Use Ctrl+Shift+S instead.",
-                System.Windows.Forms.ToolTipIcon.Warning);
+            var parameters = new HwndSourceParameters("RedSnapperHotkeys") { ParentWindow = NativeMethods.HWND_MESSAGE };
+            hotkeyWindow = new HwndSource(parameters);
+            hotkeyWindow.AddHook(WndProc);
         }
-        if (!ok)
+        UnregisterHotkeys();
+
+        var s = AppSettings.Current;
+        var failed = new System.Collections.Generic.List<string>();
+        void Register(int id, string hotkey)
         {
-            tray?.ShowBalloonTip(5000, "Hotkey unavailable",
-                "Another app is using Ctrl+Shift+S or Ctrl+Shift+F. Use the tray menu instead.",
+            if (!HotkeyText.TryParse(hotkey, out uint mods, out uint vk)) return;
+            if (!NativeMethods.RegisterHotKey(hotkeyWindow.Handle, id, mods | NativeMethods.MOD_NOREPEAT, vk))
+                failed.Add(HotkeyText.Display(hotkey));
+        }
+        Register(HotkeyPrintScreen, s.RegionHotkey);
+        Register(HotkeyRegion, s.AltRegionHotkey);
+        Register(HotkeyFullScreen, s.FullScreenHotkey);
+        Register(HotkeyHistory, s.HistoryHotkey);
+
+        if (failed.Count > 0)
+        {
+            tray?.ShowBalloonTip(6000, "Hotkey unavailable",
+                $"Another app is using {string.Join(", ", failed)}. Change it in Settings or use the tray menu.",
                 System.Windows.Forms.ToolTipIcon.Warning);
         }
     }

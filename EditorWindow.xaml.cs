@@ -291,8 +291,7 @@ public partial class EditorWindow : Window
         }
     }
 
-    private static string LibraryFolder() =>
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Red Snapper");
+    private static string LibraryFolder() => AppSettings.Current.EffectiveSaveFolder;
 
     private string? Prompt(string title)
     {
