@@ -75,6 +75,37 @@ public partial class App : Application
         base.OnExit(e);
     }
 
+    private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+
+    private static bool IsStartupEnabled()
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKey);
+        return key?.GetValue("Red Snapper") != null;
+    }
+
+    private static void SetStartup(bool enable)
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKey);
+            if (enable)
+            {
+                // Launch through the dotnet host: the apphost exe is blocked by some security policies.
+                var dotnet = Environment.ProcessPath is { } host && host.EndsWith("dotnet.exe", StringComparison.OrdinalIgnoreCase)
+                    ? host : Path.Combine(Environment.GetEnvironmentVariable("ProgramFiles") ?? @"C:\Program Files", "dotnet", "dotnet.exe");
+                key.SetValue("Red Snapper", $"\"{dotnet}\" \"{Path.Combine(AppContext.BaseDirectory, "RedSnapper.dll")}\"");
+            }
+            else
+            {
+                key.DeleteValue("Red Snapper", false);
+            }
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            MessageBox.Show($"Could not change the startup setting:\n{ex.Message}", "Red Snapper");
+        }
+    }
+
     private static void LogError(Exception? ex)
     {
         try
@@ -92,6 +123,13 @@ public partial class App : Application
         menu.Items.Add("Capture Region (Print Screen)", null, (_, _) => CaptureRegion());
         menu.Items.Add("Capture Full Screen (Ctrl+Shift+F)", null, (_, _) => CaptureFullScreen());
         menu.Items.Add("Open Image…", null, (_, _) => PickAndOpenImage());
+        var startup = new System.Windows.Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
+        startup.Click += (_, _) =>
+        {
+            SetStartup(!startup.Checked);
+            startup.Checked = IsStartupEnabled();
+        };
+        menu.Items.Add(startup);
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => Shutdown());
 
