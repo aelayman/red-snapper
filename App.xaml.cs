@@ -13,6 +13,8 @@ public partial class App : Application
     private const int HotkeyRegion = 1;
     private const int HotkeyFullScreen = 2;
     private const int HotkeyPrintScreen = 3;
+    private const int HotkeyHistory = 4;
+    private const uint VkH = 0x48;
     private const uint VkSnapshot = 0x2C;
     private const uint VkS = 0x53;
     private const uint VkF = 0x46;
@@ -43,7 +45,7 @@ public partial class App : Application
 
         BuildTray();
         RegisterHotkeys();
-
+        _ = HistoryService.CompletePendingOcrAsync();
         bool openedFile = false;
         foreach (var arg in e.Args)
         {
@@ -64,6 +66,7 @@ public partial class App : Application
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyRegion);
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen);
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen);
+            NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, HotkeyHistory);
             hotkeyWindow.Dispose();
         }
         if (tray != null)
@@ -122,6 +125,7 @@ public partial class App : Application
         var menu = new System.Windows.Forms.ContextMenuStrip();
         menu.Items.Add("Capture Region (Print Screen)", null, (_, _) => CaptureRegion());
         menu.Items.Add("Capture Full Screen (Ctrl+Shift+F)", null, (_, _) => CaptureFullScreen());
+        menu.Items.Add("History… (Ctrl+Shift+H)", null, (_, _) => HistoryWindow.ShowWindow());
         menu.Items.Add("Open Image…", null, (_, _) => PickAndOpenImage());
         var startup = new System.Windows.Forms.ToolStripMenuItem("Start with Windows") { Checked = IsStartupEnabled() };
         startup.Click += (_, _) =>
@@ -160,6 +164,7 @@ public partial class App : Application
         uint mods = NativeMethods.MOD_CONTROL | NativeMethods.MOD_SHIFT | NativeMethods.MOD_NOREPEAT;
         bool ok = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyRegion, mods, VkS);
         ok &= NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyFullScreen, mods, VkF);
+        ok &= NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyHistory, mods, VkH);
         bool printScreenOk = NativeMethods.RegisterHotKey(hotkeyWindow.Handle, HotkeyPrintScreen, NativeMethods.MOD_NOREPEAT, VkSnapshot);
         if (!printScreenOk)
         {
@@ -182,6 +187,7 @@ public partial class App : Application
             int id = wParam.ToInt32();
             if (id == HotkeyRegion || id == HotkeyPrintScreen) CaptureRegion();
             else if (id == HotkeyFullScreen) CaptureFullScreen();
+            else if (id == HotkeyHistory) HistoryWindow.ShowWindow();
             handled = true;
         }
         return IntPtr.Zero;
@@ -204,6 +210,7 @@ public partial class App : Application
             {
                 var crop = new CroppedBitmap(shot, region);
                 crop.Freeze();
+                HistoryService.Add(crop);
                 OpenEditor(crop, null);
             }
         }
@@ -221,7 +228,9 @@ public partial class App : Application
         {
             await Task.Delay(200);
             var (x, y, w, h) = ScreenCapture.VirtualScreen();
-            OpenEditor(ScreenCapture.Capture(x, y, w, h), null);
+            var full = ScreenCapture.Capture(x, y, w, h);
+            HistoryService.Add(full);
+            OpenEditor(full, null);
         }
         finally
         {

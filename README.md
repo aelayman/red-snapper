@@ -7,9 +7,13 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 ## Features (MVP)
 
 - Runs in the system tray. Global hotkeys:
-  - **Ctrl+Shift+S**: capture a region
+  - **Print Screen** or **Ctrl+Shift+S**: capture a region
   - **Ctrl+Shift+F**: capture all screens
+  - **Ctrl+Shift+H**: open History
 - Region selector over a frozen screenshot (Esc / right-click cancels)
+- Every capture is saved to a history library (`%LOCALAPPDATA%\Red Snapper\History`) and its text is read with
+  Windows OCR, so you can search inside past screenshots from the History window
+- "Start with Windows" toggle in the tray menu
 - Annotation editor: select/move, arrow, line, rectangle, ellipse, highlight, text, numbered steps,
   pixelate, solid redact. Color and width controls. Undo/redo (Ctrl+Z / Ctrl+Y), Delete.
 - Copy to clipboard (Ctrl+C), Save (Ctrl+S, to `Pictures\Red Snapper`), Save As (PNG/JPEG/BMP)
@@ -18,7 +22,7 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
 ## Not yet ported
 
-Screen recording, OCR/text search, searchable library, scroll capture, tasks/meeting notes, GIF export.
+Screen recording, scroll capture, tasks/meeting notes, GIF export.
 
 ## Build and run
 
