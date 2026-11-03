@@ -304,26 +304,13 @@ public partial class App : Application
         }
     }
 
-    private static readonly System.Collections.Generic.Dictionary<Guid, EditorWindow> EntryEditors = new();
+    private static EditorWindow? sharedEditor;
 
     public static void OpenHistoryEntry(HistoryEntry entry)
     {
-        if (EntryEditors.TryGetValue(entry.Id, out var existing))
-        {
-            if (existing.WindowState == WindowState.Minimized) existing.WindowState = WindowState.Normal;
-            existing.Activate();
-            return;
-        }
-
         try
         {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.UriSource = new Uri(HistoryService.PathOf(entry));
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.EndInit();
-            image.Freeze();
-            OpenEditor(image, null, entry);
+            OpenEditor(HistoryService.LoadOriginal(entry), null, entry);
         }
         catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or FileFormatException)
         {
@@ -331,13 +318,22 @@ public partial class App : Application
         }
     }
 
+    // Captures share one editor window (with a filmstrip); files opened from disk get their own window.
     private static void OpenEditor(BitmapSource image, string? file, HistoryEntry? entry = null)
     {
+        if (entry != null && sharedEditor != null)
+        {
+            sharedEditor.ShowEntry(image, entry);
+            if (sharedEditor.WindowState == WindowState.Minimized) sharedEditor.WindowState = WindowState.Normal;
+            sharedEditor.Activate();
+            return;
+        }
+
         var editor = new EditorWindow(image, file, entry);
         if (entry != null)
         {
-            EntryEditors[entry.Id] = editor;
-            editor.Closed += (_, _) => EntryEditors.Remove(entry.Id);
+            sharedEditor = editor;
+            editor.Closed += (_, _) => { if (sharedEditor == editor) sharedEditor = null; };
         }
         editor.Show();
         editor.Activate();

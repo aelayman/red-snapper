@@ -23,9 +23,38 @@ public partial class EditorWindow : Window
     private readonly Stack<List<Annotation>> undo = new();
     private readonly Stack<List<Annotation>> redo = new();
     private string? path;
-    private readonly HistoryEntry? entry;
+    private HistoryEntry? entry;
     private bool dirty;
     private double zoom = 1;
+
+    private sealed class StripItem
+    {
+        public StripItem(HistoryEntry entry)
+        {
+            Entry = entry;
+            Revision = entry.Revision;
+            Edited = entry.Edited;
+            When = entry.Created.ToString("ddd MMM d, h:mm tt");
+            var thumb = new BitmapImage();
+            thumb.BeginInit();
+            thumb.UriSource = new Uri(HistoryService.DisplayPathOf(entry));
+            thumb.DecodePixelWidth = 260;
+            thumb.CacheOption = BitmapCacheOption.OnLoad;
+            thumb.EndInit();
+            thumb.Freeze();
+            Thumbnail = thumb;
+        }
+
+        public HistoryEntry Entry { get; }
+        public int Revision { get; }
+        public bool Edited { get; }
+        public string When { get; }
+        public BitmapSource Thumbnail { get; }
+    }
+
+    private const int FilmstripSize = 20;
+    private readonly Dictionary<Guid, StripItem> stripCache = new();
+    private bool updatingStrip;
 
     public EditorWindow(BitmapSource image, string? path = null, HistoryEntry? entry = null)
     {
@@ -39,6 +68,9 @@ public partial class EditorWindow : Window
         View.Changed += UpdateStatus;
         View.PromptText = Prompt;
         Closing += (_, _) => SaveToHistory();
+        HistoryService.Changed += OnHistoryChanged;
+        Closed += (_, _) => HistoryService.Changed -= OnHistoryChanged;
+        RefreshFilmstrip();
 
         foreach (var (name, color) in Palette)
         {
@@ -108,8 +140,79 @@ public partial class EditorWindow : Window
     // Annotations are kept with the capture in History; the original image is never modified.
     private void SaveToHistory()
     {
-        if (entry == null || !dirty) return;
+        if (entry == null || !dirty || !HistoryService.Contains(entry)) return;
         if (HistoryService.SaveEdit(entry, View.Annotations, View.RenderToBitmap())) dirty = false;
+    }
+
+    // Switches this window to another capture, keeping the current one's edits.
+    public void ShowEntry(BitmapSource image, HistoryEntry newEntry)
+    {
+        if (entry?.Id == newEntry.Id) { SelectInFilmstrip(); return; }
+        SaveToHistory();
+        undo.Clear();
+        redo.Clear();
+        dirty = false;
+        entry = newEntry;
+        path = null;
+        Title = "Red Snapper Editor";
+        View.Image = image;
+        View.ReplaceAnnotations(HistoryService.LoadAnnotations(newEntry));
+        Dispatcher.BeginInvoke(new Action(FitZoom), System.Windows.Threading.DispatcherPriority.Loaded);
+        RefreshFilmstrip();
+    }
+
+    private void OnHistoryChanged() => Dispatcher.BeginInvoke(new Action(RefreshFilmstrip));
+
+    private void RefreshFilmstrip()
+    {
+        FilmstripBar.Visibility = entry == null ? Visibility.Collapsed : Visibility.Visible;
+        if (entry == null) return;
+
+        var recent = HistoryService.Recent(FilmstripSize).ToList();
+        // The open capture always stays visible, even if it has scrolled out of the recent list.
+        if (HistoryService.Contains(entry) && recent.All(e => e.Id != entry.Id)) recent.Add(entry);
+
+        var items = new List<StripItem>();
+        foreach (var e in recent)
+        {
+            if (!stripCache.TryGetValue(e.Id, out var item) || item.Revision != e.Revision || item.Edited != e.Edited)
+            {
+                try { item = new StripItem(e); }
+                catch (Exception ex) when (ex is IOException or NotSupportedException or UriFormatException) { continue; }
+                stripCache[e.Id] = item;
+            }
+            items.Add(item);
+        }
+        foreach (var stale in stripCache.Keys.Where(k => items.All(i => i.Entry.Id != k)).ToList()) stripCache.Remove(stale);
+
+        updatingStrip = true;
+        Filmstrip.ItemsSource = items;
+        updatingStrip = false;
+        SelectInFilmstrip();
+    }
+
+    private void SelectInFilmstrip()
+    {
+        if (entry == null) return;
+        var item = Filmstrip.Items.OfType<StripItem>().FirstOrDefault(i => i.Entry.Id == entry.Id);
+        updatingStrip = true;
+        Filmstrip.SelectedItem = item;
+        updatingStrip = false;
+        if (item != null) Filmstrip.ScrollIntoView(item);
+    }
+
+    private void Filmstrip_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (updatingStrip || Filmstrip.SelectedItem is not StripItem item || item.Entry.Id == entry?.Id) return;
+        try
+        {
+            ShowEntry(HistoryService.LoadOriginal(item.Entry), item.Entry);
+        }
+        catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or FileFormatException)
+        {
+            MessageBox.Show(this, $"Could not open this capture:\n{ex.Message}", "Red Snapper");
+            SelectInFilmstrip();
+        }
     }
 
     private void Undo()

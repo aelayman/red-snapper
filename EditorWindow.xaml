@@ -38,6 +38,45 @@
             </DockPanel>
         </Border>
 
+        <!-- Filmstrip: recent captures, newest first -->
+        <Border x:Name="FilmstripBar" DockPanel.Dock="Bottom" Background="White" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,1,0,0" Visibility="Collapsed">
+            <ListBox x:Name="Filmstrip" BorderThickness="0" Background="Transparent" Padding="8,5"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     SelectionChanged="Filmstrip_SelectionChanged">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="0,0,8,0" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Frame" Width="112" Height="68" CornerRadius="6" BorderThickness="2" BorderBrush="{StaticResource ChromeBorder}" Background="#FFF3F3F6" Padding="2" ClipToBounds="True">
+                                        <ContentPresenter />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Frame" Property="BorderBrush" Value="#FFC9C9D2" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" ToolTip="{Binding When}" RenderOptions.BitmapScalingMode="HighQuality" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
         <!-- Tool rail -->
         <Border DockPanel.Dock="Left" Background="White" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,0,1,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="6,6">

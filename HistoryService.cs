@@ -16,6 +16,10 @@ public sealed class HistoryEntry
     public string Text { get; set; } = "";
     public bool OcrDone { get; set; }
     public bool Edited { get; set; }
+
+    // Bumped on every saved edit so cached thumbnails know to reload.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int Revision { get; set; }
 }
 
 internal static class HistoryService
@@ -77,6 +81,7 @@ internal static class HistoryService
                 using (var stream = File.Create(EditedPathOf(entry))) encoder.Save(stream);
                 entry.Edited = true;
             }
+            entry.Revision++;
             Save();
             Changed?.Invoke();
             return true;
@@ -85,6 +90,29 @@ internal static class HistoryService
         {
             return false;
         }
+    }
+
+    public static IReadOnlyList<HistoryEntry> Recent(int count)
+    {
+        EnsureLoaded();
+        return Entries.OrderByDescending(e => e.Created).Take(count).ToList();
+    }
+
+    public static bool Contains(HistoryEntry entry)
+    {
+        EnsureLoaded();
+        return Entries.Contains(entry);
+    }
+
+    public static BitmapImage LoadOriginal(HistoryEntry entry)
+    {
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.UriSource = new Uri(PathOf(entry));
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
 
     public static IReadOnlyList<HistoryEntry> Search(string query)
