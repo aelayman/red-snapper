@@ -15,12 +15,8 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 **Install**
 
 1. Get the file `RedSnapper-Setup.exe` from whoever shared Red Snapper with you.
-2. Double-click it and click **Next** through the steps. You don't need administrator rights.
+2. Double-click it and click **Next** through the steps.
 3. Leave **"Start Red Snapper when I sign in to Windows"** ticked if you want it always ready, then click **Finish**.
-
-If Windows shows a blue "Windows protected your PC" box, click **More info**, then **Run anyway**.
-If you see "Access is denied" or "blocked by your IT administrator", your company's security settings are
-blocking the installer. Ask IT to allow Red Snapper (see [Troubleshooting](#troubleshooting)).
 
 **Take a screenshot**
 
