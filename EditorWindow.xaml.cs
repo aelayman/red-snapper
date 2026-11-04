@@ -67,6 +67,10 @@ public partial class EditorWindow : Window
         View.Changing += PushUndo;
         View.Changed += UpdateStatus;
         View.PromptText = Prompt;
+        // Clicking the screenshot takes focus away from the filmstrip, so Delete removes annotations again.
+        View.Focusable = true;
+        View.FocusVisualStyle = null;
+        View.PreviewMouseDown += (_, _) => View.Focus();
         Closing += (_, _) => SaveToHistory();
         HistoryService.Changed += OnHistoryChanged;
         Closed += (_, _) => HistoryService.Changed -= OnHistoryChanged;
@@ -170,6 +174,7 @@ public partial class EditorWindow : Window
     {
         FilmstripBar.Visibility = entry == null ? Visibility.Collapsed : Visibility.Visible;
         if (entry == null) return;
+        bool hadFocus = Filmstrip.IsKeyboardFocusWithin;
 
         var recent = HistoryService.Recent(FilmstripSize).ToList();
         // The open capture always stays visible, even if it has scrolled out of the recent list.
@@ -192,6 +197,8 @@ public partial class EditorWindow : Window
         Filmstrip.ItemsSource = items;
         updatingStrip = false;
         SelectInFilmstrip();
+        // Rebuilding the list drops keyboard focus; give it back so Delete keeps working on the strip.
+        if (hadFocus) Dispatcher.BeginInvoke(new Action(FocusSelectedThumbnail), System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     private void SelectInFilmstrip()
@@ -235,12 +242,44 @@ public partial class EditorWindow : Window
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         bool ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-        if (e.Key is Key.Delete or Key.Back) { View.DeleteSelected(); e.Handled = true; }
+        if (e.Key == Key.Delete && entry != null && Filmstrip.IsKeyboardFocusWithin) { DeleteCurrentCapture(); e.Handled = true; }
+        else if (e.Key is Key.Delete or Key.Back) { View.DeleteSelected(); e.Handled = true; }
         else if (ctrl && e.Key == Key.Z) { Undo(); e.Handled = true; }
         else if (ctrl && e.Key == Key.Y) { Redo(); e.Handled = true; }
         else if (ctrl && e.Key == Key.S) { Save(); e.Handled = true; }
         else if (ctrl && e.Key == Key.C) { CopyToClipboard(); e.Handled = true; }
         else if (e.Key == Key.Escape && View.Selected != null) { View.Selected = null; View.InvalidateVisual(); e.Handled = true; }
+    }
+
+    private void DeleteCurrentCapture()
+    {
+        if (entry == null) return;
+        var items = Filmstrip.Items.OfType<StripItem>().ToList();
+        int index = items.FindIndex(i => i.Entry.Id == entry.Id);
+        if (MessageBox.Show(this, "Delete this capture from History? This can't be undone.", "Red Snapper",
+                MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+
+        // Prefer the next older capture, otherwise the newer one.
+        var next = index >= 0 ? (index + 1 < items.Count ? items[index + 1] : index > 0 ? items[index - 1] : null) : null;
+        dirty = false;
+        HistoryService.Delete(entry);
+        if (next == null) { Close(); return; }
+
+        try
+        {
+            ShowEntry(HistoryService.LoadOriginal(next.Entry), next.Entry);
+            Dispatcher.BeginInvoke(new Action(FocusSelectedThumbnail), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+        catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or FileFormatException)
+        {
+            MessageBox.Show(this, $"Could not open the next capture:\n{ex.Message}", "Red Snapper");
+        }
+    }
+
+    private void FocusSelectedThumbnail()
+    {
+        if (Filmstrip.SelectedItem != null)
+            (Filmstrip.ItemContainerGenerator.ContainerFromItem(Filmstrip.SelectedItem) as ListBoxItem)?.Focus();
     }
 
     private void Tool_Click(object sender, RoutedEventArgs e)
