@@ -193,10 +193,13 @@ public partial class EditorWindow : Window
         }
         foreach (var stale in stripCache.Keys.Where(k => items.All(i => i.Entry.Id != k)).ToList()) stripCache.Remove(stale);
 
+        // Keep a multi-selection across rebuilds; fall back to the open capture.
+        var keep = Filmstrip.SelectedItems.OfType<StripItem>().Select(i => i.Entry.Id).ToHashSet();
         updatingStrip = true;
         Filmstrip.ItemsSource = items;
+        foreach (var i in items.Where(i => keep.Contains(i.Entry.Id))) Filmstrip.SelectedItems.Add(i);
         updatingStrip = false;
-        SelectInFilmstrip();
+        if (Filmstrip.SelectedItems.Count == 0) SelectInFilmstrip();
         // Rebuilding the list drops keyboard focus; give it back so Delete keeps working on the strip.
         if (hadFocus) Dispatcher.BeginInvoke(new Action(FocusSelectedThumbnail), System.Windows.Threading.DispatcherPriority.Loaded);
     }
@@ -213,7 +216,7 @@ public partial class EditorWindow : Window
 
     private void Filmstrip_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (updatingStrip || Filmstrip.SelectedItem is not StripItem item || item.Entry.Id == entry?.Id) return;
+        if (updatingStrip || e.AddedItems.OfType<StripItem>().LastOrDefault() is not { } item || item.Entry.Id == entry?.Id) return;
         try
         {
             ShowEntry(HistoryService.LoadOriginal(item.Entry), item.Entry);
@@ -255,14 +258,25 @@ public partial class EditorWindow : Window
     {
         if (entry == null) return;
         var items = Filmstrip.Items.OfType<StripItem>().ToList();
-        int index = items.FindIndex(i => i.Entry.Id == entry.Id);
-        if (MessageBox.Show(this, "Delete this capture from History? This can't be undone.", "Red Snapper",
+        var doomed = Filmstrip.SelectedItems.OfType<StripItem>().Select(i => i.Entry).ToList();
+        if (doomed.Count == 0) doomed.Add(entry);
+        string what = doomed.Count == 1 ? "this capture" : $"these {doomed.Count} captures";
+        if (MessageBox.Show(this, $"Delete {what} from History? This can't be undone.", "Red Snapper",
                 MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
 
-        // Prefer the next older capture, otherwise the newer one.
-        var next = index >= 0 ? (index + 1 < items.Count ? items[index + 1] : index > 0 ? items[index - 1] : null) : null;
-        dirty = false;
-        HistoryService.Delete(entry);
+        var ids = doomed.Select(d => d.Id).ToHashSet();
+        bool currentGone = ids.Contains(entry.Id);
+        StripItem? next = null;
+        if (currentGone)
+        {
+            // Prefer the next older surviving capture, otherwise the newer one.
+            int index = items.FindIndex(i => i.Entry.Id == entry.Id);
+            next = items.Skip(index + 1).FirstOrDefault(i => !ids.Contains(i.Entry.Id))
+                   ?? items.Take(Math.Max(index, 0)).LastOrDefault(i => !ids.Contains(i.Entry.Id));
+            dirty = false;
+        }
+        foreach (var d in doomed) HistoryService.Delete(d);
+        if (!currentGone) { RefreshFilmstrip(); return; }
         if (next == null) { Close(); return; }
 
         try

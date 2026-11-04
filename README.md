@@ -30,7 +30,7 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
    `Pictures\Red Snapper` unless you change it in Settings).
 
 Every screenshot is kept in the strip along the bottom of the editor, so you can click back to an earlier one.
-To remove one, click its thumbnail and press **Delete**.
+To remove one, click its thumbnail and press **Delete**. To remove several, hold **Ctrl** and click each one (or **Shift** and click to select a range), then press **Delete**.
 Press **Ctrl+Shift+H** (or right-click the fish and choose **History**) to browse and search old screenshots,
 including by the words inside them.
 

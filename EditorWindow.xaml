@@ -42,7 +42,7 @@
         <Border x:Name="FilmstripBar" DockPanel.Dock="Bottom" Background="White" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,1,0,0" Visibility="Collapsed">
             <ListBox x:Name="Filmstrip" BorderThickness="0" Background="Transparent" Padding="8,5"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     SelectionChanged="Filmstrip_SelectionChanged">
+                     SelectionMode="Extended" SelectionChanged="Filmstrip_SelectionChanged">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
