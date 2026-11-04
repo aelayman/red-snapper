@@ -3,3 +3,4 @@ obj/
 .vs/
 installer/publish/
 installer/Output/
+installer/publish-zip/

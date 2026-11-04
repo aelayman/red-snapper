@@ -10,13 +10,19 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
 ## Install and use (no technical skills needed)
 
-**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** (the installer will warn you if it's missing).
+**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** (the install step will tell you if it's missing).
 
 **Install**
 
-1. Get the file `RedSnapper-Setup.exe` from whoever shared Red Snapper with you.
-2. Double-click it and click **Next** through the steps.
-3. Leave **"Start Red Snapper when I sign in to Windows"** ticked if you want it always ready, then click **Finish**.
+1. Get the file `RedSnapper.zip` from whoever shared Red Snapper with you.
+2. Right-click it, choose **Extract All**, and open the extracted `RedSnapper` folder.
+3. Double-click **Install.cmd**. Answer the two questions (press Enter to accept the first one, which makes Red
+   Snapper start when you sign in). The little red fish appears in the system tray when it's ready.
+
+To update, extract the new zip and run **Install.cmd** again. To remove it, run **Uninstall.cmd**.
+
+(`RedSnapper-Setup.exe` is also available for PCs that allow unsigned installers, but most company laptops
+block it, so use the zip.)
 
 **Take a screenshot**
 
@@ -45,7 +51,7 @@ including by the words inside them.
 | Ctrl+Z / Ctrl+Y | Undo / redo |
 
 Right-click the fish in the tray for **Settings**, where you can change these keys, choose the save folder, and
-turn "Start with Windows" on or off. To remove Red Snapper, use **Settings > Apps** in Windows.
+turn "Start with Windows" on or off. To remove Red Snapper, run **Uninstall.cmd** from the zip.
 
 ## Troubleshooting
 
@@ -92,6 +98,14 @@ powershell -ExecutionPolicy Bypass -File installer\build.ps1
 
 The result is `installer\Output\RedSnapper-Setup.exe`. The app is launched through `dotnet.exe RedSnapper.dll`
 because some company security policies block the unsigned `RedSnapper.exe`.
+
+**Build the zip package** (no extra tools; this is the one to share on locked-down PCs):
+
+```
+powershell -ExecutionPolicy Bypass -File installer\build-zip.ps1
+```
+
+The result is `installer\Output\RedSnapper.zip`.
 
 ## Known limitations
 
