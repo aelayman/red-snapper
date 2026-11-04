@@ -8,36 +8,93 @@ A Windows (WPF / .NET 8) screen capture and annotation tool, based on [Snappilot
 macOS screen capture and annotation tool (MIT licensed). This is a ground-up rewrite, since the original
 relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
-## Features (MVP)
+## Install and use (no technical skills needed)
 
-- Runs in the system tray. Global hotkeys:
-  - **Print Screen** or **Ctrl+Shift+S**: capture a region
-  - **Ctrl+Shift+F**: capture all screens
-  - **Ctrl+Shift+H**: open History
-- Region selector over a frozen screenshot (Esc / right-click cancels)
+**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** (the installer will warn you if it's missing).
+
+**Install**
+
+1. Get the file `RedSnapper-Setup.exe` from whoever shared Red Snapper with you.
+2. Double-click it and click **Next** through the steps. You don't need administrator rights.
+3. Leave **"Start Red Snapper when I sign in to Windows"** ticked if you want it always ready, then click **Finish**.
+
+If Windows shows a blue "Windows protected your PC" box, click **More info**, then **Run anyway**.
+If you see "Access is denied" or "blocked by your IT administrator", your company's security settings are
+blocking the installer. Ask IT to allow Red Snapper (see [Troubleshooting](#troubleshooting)).
+
+**Take a screenshot**
+
+1. Look for the little red fish in the system tray (bottom-right of the screen, near the clock; you may need to
+   click the ^ arrow). That means Red Snapper is running. If it isn't, open it from the Start menu.
+2. Press **Print Screen** (**PrtScn**). The screen freezes and dims.
+3. Either **click a window** to capture just that window, or **drag** a box around the part you want.
+   Press **Esc** to cancel.
+4. Your screenshot opens in the editor. Use the tools on the left to add arrows, boxes, text, blur, and more.
+5. Click **Copy** to paste it into an email or chat, or **Save** to keep it as a file (saved to
+   `Pictures\Red Snapper` unless you change it in Settings).
+
+Every screenshot is kept in the strip along the bottom of the editor, so you can click back to an earlier one.
+Press **Ctrl+Shift+H** (or right-click the fish and choose **History**) to browse and search old screenshots,
+including by the words inside them.
+
+**Handy shortcuts**
+
+| Press | To |
+|---|---|
+| Print Screen or Ctrl+Shift+S | Capture a window or region |
+| Ctrl+Shift+F | Capture the whole screen |
+| Ctrl+Shift+H | Open History |
+| Ctrl+C | Copy the screenshot |
+| Ctrl+Z / Ctrl+Y | Undo / redo |
+
+Right-click the fish in the tray for **Settings**, where you can change these keys, choose the save folder, and
+turn "Start with Windows" on or off. To remove Red Snapper, use **Settings > Apps** in Windows.
+
+## Troubleshooting
+
+- **Print Screen opens the Windows Snipping Tool instead.** Right-click the fish, choose **Settings**, and tick
+  **"Let Red Snapper use Print Screen"**. Or use **Ctrl+Shift+S** instead.
+- **Nothing happens when I double-click it.** It may already be running: look for the fish in the tray.
+- **"Access is denied" or "blocked by your IT administrator".** Your company blocks unsigned apps. Ask IT to
+  allow Red Snapper, or ask them how to share internal tools.
+- **"You must install .NET" or the app won't start.** Install the *.NET 8 Desktop Runtime* (x64) from
+  <https://dotnet.microsoft.com/download/dotnet/8.0>, or ask IT.
+
+## Features
+
+- Runs in the system tray with global hotkeys (see above; all can be changed in Settings)
+- Region selector over a frozen screenshot; click a window to capture just that window (Esc / right-click cancels)
+- One editor window with a filmstrip of your recent captures
 - Every capture is saved to a history library (`%LOCALAPPDATA%\Red Snapper\History`) and its text is read with
   Windows OCR, so you can search inside past screenshots from the History window
 - Annotations are saved with each capture and stay editable: reopen it from History to move, change or delete
   them. The original image is never modified; Copy/Save export a flattened copy
-- "Start with Windows" toggle in the tray menu
-- **Settings** (tray menu): change or disable any hotkey and choose the default save folder. Defaults are the keys above.
-- Annotation editor: select/move, arrow, line, rectangle, ellipse, highlight, text, numbered steps,
-  pixelate, solid redact. Color and width controls. Undo/redo (Ctrl+Z / Ctrl+Y), Delete.
-- Copy to clipboard (Ctrl+C), Save (Ctrl+S, to `Pictures\Red Snapper`), Save As (PNG/JPEG/BMP)
-- Open existing images (File picker or command-line argument)
-- Ctrl+mouse wheel to zoom
+- Annotation editor: select/move/resize, arrow (several head styles), line, rectangle, ellipse, pen, highlight,
+  text, numbered steps, pixelate, blur, solid redact, and crop. Color and width controls. Undo/redo, Delete.
+- Copy to clipboard (Ctrl+C), Save (Ctrl+S), Save As (PNG/JPEG/BMP), and a "Copy Text" button (OCR)
+- Open existing images (file picker or command-line argument)
+- Zoom with Ctrl+mouse wheel or the zoom bar
 
 ## Not yet ported
 
 Screen recording, scroll capture, tasks/meeting notes, GIF export.
 
-## Build and run
+## For developers
 
-Requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+**Run from source** (requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)):
 
 ```
 dotnet run
 ```
+
+**Build the installer** (requires [Inno Setup 6](https://jrsoftware.org/isinfo.php), e.g. `winget install JRSoftware.InnoSetup`):
+
+```
+powershell -ExecutionPolicy Bypass -File installer\build.ps1
+```
+
+The result is `installer\Output\RedSnapper-Setup.exe`. The app is launched through `dotnet.exe RedSnapper.dll`
+because some company security policies block the unsigned `RedSnapper.exe`.
 
 ## Known limitations
 
