@@ -10,6 +10,7 @@
     <AssemblyName>RedSnapper</AssemblyName>
     <RootNamespace>RedSnapper</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>RedSnapper.Program</StartupObject>
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>

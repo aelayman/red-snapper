@@ -20,6 +20,10 @@ internal static class NativeMethods
     public const uint SWP_SHOWWINDOW = 0x0040;
 
     [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetProcessDpiAwarenessContext(IntPtr context);
+
+    [DllImport("user32.dll")]
     public static extern int GetSystemMetrics(int index);
 
     [DllImport("user32.dll", SetLastError = true)]

@@ -108,6 +108,9 @@ public partial class EditorWindow : Window
     {
         zoom = Math.Clamp(value, 0.1, 8);
         ZoomHost.LayoutTransform = new ScaleTransform(zoom, zoom);
+        // Shrinking needs a good filter; at 1:1 or larger, keep pixels crisp instead of smeared.
+        double devicePerPixel = zoom * VisualTreeHelper.GetDpi(this).DpiScaleX;
+        RenderOptions.SetBitmapScalingMode(View, devicePerPixel < 0.999 ? BitmapScalingMode.Fant : BitmapScalingMode.NearestNeighbor);
         UpdateStatus();
     }
 
