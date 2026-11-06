@@ -92,6 +92,7 @@ public partial class EditorWindow : Window
         ((RadioButton)ColorPanel.Children[0]).IsChecked = true;
 
         Title = path == null ? "Red Snapper Editor" : $"Red Snapper Editor - {System.IO.Path.GetFileName(path)}";
+        UseLayoutRounding = true; // keeps the image on whole device pixels so 100% view isn't smeared by a fractional offset
         Loaded += (_, _) => FitZoom();
         UpdateOptions();
         PreviewKeyDown += Window_PreviewKeyDown;
