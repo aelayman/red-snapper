@@ -10,7 +10,11 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
 ## Install and use (no technical skills needed)
 
-**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** (the install step will tell you if it's missing).
+⚠️ **REQUIRED: .NET 8 Desktop Runtime**
+
+Red Snapper **requires** the **.NET 8 Desktop Runtime** to run. Install it first from: https://dotnet.microsoft.com/download/dotnet/8.0 (choose "Desktop Runtime" and your PC type, usually x64). If you skip this, Red Snapper won't start.
+
+**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** already installed.
 
 **Install**
 
