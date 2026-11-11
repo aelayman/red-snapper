@@ -24,7 +24,7 @@ Red Snapper **requires** the **.NET 8 Desktop Runtime** to run. Install it first
 
 **Install**
 
-1. Get the file `RedSnapper.zip` from whoever shared Red Snapper with you.
+1. Download [`RedSnapper.zip`](installer/Output/RedSnapper.zip) from this repository.
 2. Right-click it, choose **Extract All**, and open the extracted `RedSnapper` folder.
 3. Double-click **Install.cmd**. Answer the two questions (press Enter to accept the first one, which makes Red
    Snapper start when you sign in). The little red fish appears in the system tray when it's ready.
