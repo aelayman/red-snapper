@@ -31,8 +31,7 @@ Red Snapper **requires** the **.NET 8 Desktop Runtime** to run. Install it first
 
 To update, extract the new zip and run **Install.cmd** again. To remove it, run **Uninstall.cmd**.
 
-(`RedSnapper-Setup.exe` is also available for PCs that allow unsigned installers, but most company laptops
-block it, so use the zip.)
+(`RedSnapper-Setup.exe` is also available for PCs that allow unsigned installers.)
 
 **Take a screenshot**
 
