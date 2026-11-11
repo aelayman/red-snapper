@@ -118,7 +118,8 @@
                 <StackPanel x:Name="HeadGroup" Orientation="Horizontal" VerticalAlignment="Center">
                     <Rectangle Width="1" Margin="10,4" Fill="{StaticResource ChromeBorder}" />
                     <TextBlock Text="Head" Foreground="{StaticResource InkMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                    <ComboBox x:Name="HeadBox" Width="90" SelectedIndex="0" VerticalAlignment="Center" SelectionChanged="Style_Changed">
+                    <ComboBox x:Name="HeadBox" Width="90" SelectedIndex="0" VerticalAlignment="Center"
+                              Style="{StaticResource PillComboBox}" SelectionChanged="Style_Changed">
                         <ComboBoxItem Content="Arrow" Tag="Arrow" />
                         <ComboBoxItem Content="Double" Tag="Double" />
                         <ComboBoxItem Content="Dot" Tag="Dot" />

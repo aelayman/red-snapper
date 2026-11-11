@@ -126,6 +126,89 @@
             </Setter>
         </Style>
 
+        <Style x:Key="PillComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Padding" Value="9,5" />
+            <Setter Property="Margin" Value="2,1" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" Background="Transparent" CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#12E23A52" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#18E23A52" />
+                                <Setter Property="Foreground" Value="{StaticResource AccentDark}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PillComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource PillComboBoxItem}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="Field" Background="White" BorderBrush="{StaticResource ChromeBorder}"
+                                    BorderThickness="1" CornerRadius="12" Padding="9,4">
+                                <ToggleButton x:Name="DropDownToggle" Background="Transparent" BorderThickness="0"
+                                              Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                              ClickMode="Press">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="12" />
+                                        </Grid.ColumnDefinitions>
+                                        <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                          VerticalAlignment="Center" />
+                                        <Path Grid.Column="1" Data="M1,1 L5,5 L9,1" Stroke="{StaticResource InkMuted}"
+                                              StrokeThickness="1.4" StrokeLineJoin="Round" HorizontalAlignment="Right"
+                                              VerticalAlignment="Center" />
+                                    </Grid>
+                                </ToggleButton>
+                            </Border>
+                            <Popup x:Name="Popup" AllowsTransparency="True" Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
+                                   PlacementTarget="{Binding ElementName=Field}" PopupAnimation="Slide">
+                                <Border Background="White" BorderBrush="{StaticResource ChromeBorder}"
+                                        BorderThickness="1" CornerRadius="8" Padding="4">
+                                    <ScrollViewer MaxHeight="240" CanContentScroll="True">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Field" Property="Background" Value="#12E23A52" />
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Field" Property="Background" Value="#12E23A52" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Field" Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="RailTool" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{StaticResource Ink}" />
             <Setter Property="Cursor" Value="Hand" />
