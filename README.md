@@ -8,6 +8,12 @@ A Windows (WPF / .NET 8) screen capture and annotation tool, based on [Snappilot
 macOS screen capture and annotation tool (MIT licensed). This is a ground-up rewrite, since the original
 relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
+## See it in action
+
+<p align="center">
+  <img src="assets/screenshots/editor.png" alt="Red Snapper editor showing an annotated Excel screenshot" width="960" />
+</p>
+
 ## Install and use (no technical skills needed)
 
 ⚠️ **REQUIRED: .NET 8 Desktop Runtime**
