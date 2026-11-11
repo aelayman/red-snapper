@@ -126,8 +126,10 @@
                         <ComboBoxItem Content="None" Tag="None" />
                     </ComboBox>
                 </StackPanel>
-                <CheckBox x:Name="DashedBox" Content="Dashed" Margin="14,0,0,0" VerticalAlignment="Center" Click="Style_Changed" />
-                <CheckBox x:Name="FilledBox" Content="Filled" Margin="14,0,0,0" VerticalAlignment="Center" Click="Style_Changed" />
+                <CheckBox x:Name="DashedBox" Content="Dashed" Margin="14,0,0,0" VerticalAlignment="Center"
+                          Click="Style_Changed" Style="{StaticResource PropertyToggle}" />
+                <CheckBox x:Name="FilledBox" Content="Filled" Margin="6,0,0,0" VerticalAlignment="Center"
+                          Click="Style_Changed" Style="{StaticResource PropertyToggle}" />
                 <Button x:Name="ResetCropButton" Content="Reset crop" Click="ResetCrop_Click" Style="{StaticResource ActionButton}" Margin="10,0,0,0" Visibility="Collapsed" />
             </WrapPanel>
         </Border>
