@@ -87,9 +87,18 @@ turn "Start with Windows" on or off. To remove Red Snapper, run **Uninstall.cmd*
 - Open existing images (file picker or command-line argument)
 - Zoom with Ctrl+mouse wheel or the zoom bar
 
-## Not yet ported
+## Roadmap
 
-Screen recording, scroll capture, tasks/meeting notes, GIF export.
+Ideas being considered for future versions — not committed, no timeline, and contributions are welcome:
+
+- **Video capture to MP4** — record a region or window as a short screen recording, not just a still frame.
+- **Interval capture** — automatically take a screenshot on a timer (e.g., every N seconds or minutes), for
+  monitoring or time-lapse documentation.
+- Scroll capture — stitch a scrolling window (like a long webpage) into one tall image.
+- GIF export — save a short recording as an animated GIF instead of MP4.
+- Tasks/meeting notes — a lightweight notes panel tied to a capture, ported from the original Snappilot.
+- Cloud/network save locations (OneDrive, SharePoint, a shared drive) alongside local folders.
+- Quick-share — copy a shareable link instead of (or in addition to) the raw image.
 
 ## For developers
 
