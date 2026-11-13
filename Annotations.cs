@@ -85,7 +85,7 @@ public sealed class ShapeAnnotation : Annotation
             EndLineCap = PenLineCap.Round,
             LineJoin = PenLineJoin.Round,
         };
-        if (Dashed && Kind != ShapeKind.Highlight) pen.DashStyle = new DashStyle(new[] { 3.0, 2.0 }, 0);
+        if (Dashed && Kind != ShapeKind.Highlight) pen.DashStyle = new DashStyle([3.0, 2.0], 0);
         var fill = Filled ? MakeBrush(0x99) : null;
 
         switch (Kind)

@@ -4,7 +4,7 @@
 
 <h1 align="center">Red Snapper</h1>
 
-A Windows (WPF / .NET 8) screen capture and annotation tool, based on [Snappilot](https://github.com/shipiit/snappilot), the open-source
+A Windows (WPF / .NET 10) screen capture and annotation tool, based on [Snappilot](https://github.com/shipiit/snappilot), the open-source
 macOS screen capture and annotation tool (MIT licensed). This is a ground-up rewrite, since the original
 relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
@@ -16,11 +16,11 @@ relies on Apple-only frameworks (SwiftUI, ScreenCaptureKit, Vision).
 
 ## Install and use (no technical skills needed)
 
-⚠️ **REQUIRED: .NET 8 Desktop Runtime**
+⚠️ **REQUIRED: .NET 10 Desktop Runtime**
 
-Red Snapper **requires** the **.NET 8 Desktop Runtime** to run. Install it first from: https://dotnet.microsoft.com/download/dotnet/8.0 (choose "Desktop Runtime" and your PC type, usually x64). If you skip this, Red Snapper won't start.
+Red Snapper **requires** the **.NET 10 Desktop Runtime** to run. Install it first from: https://dotnet.microsoft.com/download/dotnet/10.0 (choose "Desktop Runtime" and your PC type, usually x64). If you skip this, Red Snapper won't start.
 
-**What you need:** a Windows 10 or 11 PC with the **.NET 8 Desktop Runtime** already installed.
+**What you need:** a Windows 10 or 11 PC with the **.NET 10 Desktop Runtime** already installed.
 
 **Install**
 
@@ -69,8 +69,8 @@ turn "Start with Windows" on or off. To remove Red Snapper, run **Uninstall.cmd*
 - **Nothing happens when I double-click it.** It may already be running: look for the fish in the tray.
 - **"Access is denied" or "blocked by your IT administrator".** Your company blocks unsigned apps. Ask IT to
   allow Red Snapper, or ask them how to share internal tools.
-- **"You must install .NET" or the app won't start.** Install the *.NET 8 Desktop Runtime* (x64) from
-  <https://dotnet.microsoft.com/download/dotnet/8.0>, or ask IT.
+- **"You must install .NET" or the app won't start.** Install the *.NET 10 Desktop Runtime* (x64) from
+  <https://dotnet.microsoft.com/download/dotnet/10.0>, or ask IT.
 
 ## Features
 
@@ -93,7 +93,7 @@ Screen recording, scroll capture, tasks/meeting notes, GIF export.
 
 ## For developers
 
-**Run from source** (requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)):
+**Run from source** (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)):
 
 ```
 dotnet run

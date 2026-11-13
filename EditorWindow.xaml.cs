@@ -14,11 +14,11 @@ namespace RedSnapper;
 public partial class EditorWindow : Window
 {
     private static readonly (string Name, Color Color)[] Palette =
-    {
+    [
         ("Red", Colors.Red), ("Orange", Colors.DarkOrange), ("Yellow", Colors.Gold),
         ("Green", Colors.LimeGreen), ("Blue", Colors.DodgerBlue), ("Purple", Colors.MediumPurple),
         ("Black", Colors.Black), ("White", Colors.White),
-    };
+    ];
 
     private readonly Stack<List<Annotation>> undo = new();
     private readonly Stack<List<Annotation>> redo = new();

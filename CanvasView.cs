@@ -175,18 +175,18 @@ public sealed class CanvasView : FrameworkElement
         switch (a)
         {
             case ShapeAnnotation { Kind: ShapeKind.Line or ShapeKind.Arrow } s:
-                return new[] { s.P1, s.P2 };
+                return [s.P1, s.P2];
             case ShapeAnnotation s:
                 return Corners(new Rect(s.P1, s.P2));
             case RedactAnnotation r:
                 return Corners(new Rect(r.P1, r.P2));
             default:
-                return Array.Empty<Point>();
+                return [];
         }
     }
 
     private static Point[] Corners(Rect r) =>
-        new[] { r.TopLeft, r.TopRight, r.BottomLeft, r.BottomRight };
+        [r.TopLeft, r.TopRight, r.BottomLeft, r.BottomRight];
 
     private int HitHandle(Point p)
     {
@@ -242,7 +242,7 @@ public sealed class CanvasView : FrameworkElement
             // Keep the dragged corner index stable after the box flips over itself.
             var nr = new Rect(p1, p2);
             (p1, p2) = (nr.TopLeft, nr.BottomRight);
-            var moved = new[] { nr.TopLeft, nr.TopRight, nr.BottomLeft, nr.BottomRight };
+            Point[] moved = [nr.TopLeft, nr.TopRight, nr.BottomLeft, nr.BottomRight];
             resizeHandle = Enumerable.Range(0, 4).OrderBy(i => (moved[i] - p).Length).First();
         }
         SetEnds(Selected, p1, p2);
@@ -427,7 +427,7 @@ public sealed class CanvasView : FrameworkElement
             case Tool.Ellipse: return NewShape(ShapeKind.Ellipse, p);
             case Tool.Highlight: return NewShape(ShapeKind.Highlight, p);
             case Tool.Pen:
-                return new PenAnnotation { Points = new List<Point> { p }, Color = StrokeColor, Thickness = Thickness };
+                return new PenAnnotation { Points = [p], Color = StrokeColor, Thickness = Thickness };
             case Tool.Pixelate:
                 return new RedactAnnotation { Mode = RedactMode.Pixelate, P1 = p, P2 = p };
             case Tool.Blur:

@@ -51,7 +51,7 @@ var
   Found: TFindRec;
 begin
   Result := False;
-  if FindFirst(ExpandConstant('{commonpf64}') + '\dotnet\shared\Microsoft.WindowsDesktop.App\8.*', Found) then
+  if FindFirst(ExpandConstant('{commonpf64}') + '\dotnet\shared\Microsoft.WindowsDesktop.App\10.*', Found) then
   begin
     Result := True;
     FindClose(Found);
@@ -63,9 +63,9 @@ begin
   Result := True;
   if not HasDesktopRuntime() then
   begin
-    if MsgBox('{#AppName} needs the .NET 8 Desktop Runtime, which was not found on this PC.' + #13#10 + #13#10 +
+    if MsgBox('{#AppName} needs the .NET 10 Desktop Runtime, which was not found on this PC.' + #13#10 + #13#10 +
               'You can continue installing, but the app will not start until the runtime is installed ' +
-              '(https://dotnet.microsoft.com/download/dotnet/8.0, "Desktop Runtime", x64). ' +
+              '(https://dotnet.microsoft.com/download/dotnet/10.0, "Desktop Runtime", x64). ' +
               'If you are not sure, ask IT.' + #13#10 + #13#10 + 'Continue anyway?',
               mbConfirmation, MB_YESNO) = IDNO then
       Result := False;

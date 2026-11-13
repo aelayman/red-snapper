@@ -37,7 +37,7 @@ public partial class SettingsWindow : Window
         SnippingBox.IsChecked = IsPrintScreenFree();
     }
 
-    private TextBox[] HotkeyBoxes => new[] { RegionBox, AltRegionBox, FullBox, HistoryBox };
+    private TextBox[] HotkeyBoxes => [RegionBox, AltRegionBox, FullBox, HistoryBox];
 
     private static void SetHotkey(TextBox box, string value)
     {

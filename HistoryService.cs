@@ -171,7 +171,7 @@ internal static class HistoryService
     {
         EnsureLoaded();
         Entries.Remove(entry);
-        foreach (var file in new[] { PathOf(entry), EditedPathOf(entry), ProjectPathOf(entry) })
+        foreach (string file in (string[])[PathOf(entry), EditedPathOf(entry), ProjectPathOf(entry)])
         {
             try { File.Delete(file); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }

@@ -177,7 +177,7 @@ public partial class App : Application
     private void UnregisterHotkeys()
     {
         if (hotkeyWindow == null) return;
-        foreach (int id in new[] { HotkeyRegion, HotkeyFullScreen, HotkeyPrintScreen, HotkeyHistory })
+        foreach (int id in (int[])[HotkeyRegion, HotkeyFullScreen, HotkeyPrintScreen, HotkeyHistory])
             NativeMethods.UnregisterHotKey(hotkeyWindow.Handle, id);
     }
 

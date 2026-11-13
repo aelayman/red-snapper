@@ -29,10 +29,10 @@ if (-not (Test-Path (Join-Path $src 'RedSnapper.dll'))) {
 }
 
 $runtime = Join-Path $env:ProgramFiles 'dotnet\shared\Microsoft.WindowsDesktop.App'
-if (-not (Test-Path $dotnet) -or -not (Get-ChildItem $runtime -Directory -Filter '8.*' -ErrorAction SilentlyContinue)) {
-    Write-Host 'Red Snapper needs the .NET 8 Desktop Runtime (x64), which is not installed on this PC.'
-    Write-Host 'Install it from https://dotnet.microsoft.com/download/dotnet/8.0 (or ask IT), then run Install again.'
-    Start-Process 'https://dotnet.microsoft.com/download/dotnet/8.0'
+if (-not (Test-Path $dotnet) -or -not (Get-ChildItem $runtime -Directory -Filter '10.*' -ErrorAction SilentlyContinue)) {
+    Write-Host 'Red Snapper needs the .NET 10 Desktop Runtime (x64), which is not installed on this PC.'
+    Write-Host 'Install it from https://dotnet.microsoft.com/download/dotnet/10.0 (or ask IT), then run Install again.'
+    Start-Process 'https://dotnet.microsoft.com/download/dotnet/10.0'
     return
 }
 
