@@ -1,0 +1,40 @@
+name: Publish zip
+
+# Keeps installer/Output/RedSnapper.zip (the file the README links to) in sync
+# with the current source, so it never goes stale the way it did after the
+# .NET 10 upgrade.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish-zip:
+    runs-on: windows-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Rebuild the zip package
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File installer\build-zip.ps1
+
+      - name: Commit the zip if it changed
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add installer/Output/RedSnapper.zip
+          if (git diff --cached --quiet) {
+            Write-Host "Zip is already up to date."
+          } else {
+            git commit -m "Auto-rebuild RedSnapper.zip [skip ci]"
+            git push
+          }
